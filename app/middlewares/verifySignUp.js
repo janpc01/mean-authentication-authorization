@@ -2,39 +2,27 @@ const db = require('../models');
 const ROLES = db.ROLES;
 const User = db.user;
 
-checkDuplicateUsernameOrEmail = (req, res, next) => {
-    // Username
-    User.findOne({
-        username: req.body.username
-    }).exec((err, user) => {
-        if (err) {
-            res.status(500).send({ message: err });
-            return;
+const checkDuplicateUsernameOrEmail = async (req, res, next) => {
+    try {
+        // Check Username
+        const userByUsername = await User.findOne({ username: req.body.username });
+        if (userByUsername) {
+            return res.status(400).send({ message: "Failed! Username is already in use!" });
         }
 
-        if (user) {
-            res.status(400).send({ message: "Failed! Username is already in use!" });
-            return;
+        // Check Email
+        const userByEmail = await User.findOne({ email: req.body.email });
+        if (userByEmail) {
+            return res.status(400).send({ message: "Failed! Email is already in use!" });
         }
 
-        // Email
-        User.findOne({
-            email: req.body.email
-        }).exec((err, user) => {
-            if (err) {
-                res.status(500).send({ message: err });
-                return;
-            }
+        // Proceed to the next middleware if no duplicates
+        next();
+    } catch (err) {
+        res.status(500).send({ message: err.message || "An error occurred while checking for duplicates" });
+    }
+};
 
-            if (user) {
-                res.status(400).send({ message: "Failed! Email is already in use!" });
-                return;
-            }
-
-            next();
-        })
-    })
-}
 
 checkRolesExisted = (req, res, next) => {
     if (req.body.roles) {
