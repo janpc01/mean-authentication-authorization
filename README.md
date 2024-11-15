@@ -112,10 +112,6 @@ POST /api/auth/signin
 - jsonwebtoken
 - mongoose
 
-## License
-
-ISC
-
 ## Author
 
 janpc01
